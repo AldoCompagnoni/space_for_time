@@ -1,6 +1,7 @@
 # Use Adler's data to look at patterns of abundance
 library(tidyverse)
 library(testthat)
+library(plotly)
 options(stringsAsFactors = F)
 
 # read data 
@@ -71,11 +72,10 @@ select(ks_n, quadrat, yr) %>%
   expect_true
 
 
-# most abundant species, BY GROUP -------------------------------  
-ks_n %>%
+# most abundant species, BY GROUP, ONLY BOUTEOULA GRACILIS -------------------------------  
+p_bogr <- ks_n %>%
   subset( species == 'Bouteloua gracilis' ) %>%
   subset( n != 0 ) %>%
-  rename( quadrat = plot ) %>% 
   left_join( ks_q ) %>% 
   group_by( group, yr ) %>% 
   summarise( n = sum(n) ) %>% 
@@ -84,6 +84,9 @@ ks_n %>%
   geom_line( aes(x=yr,y=n,
                  color = group,
                  group = group) ) 
+
+# explore interactively (explude groups with little BOGR)
+ggplotly(p_bogr)
 
 # Growth rates by N -------------------------------------
 
@@ -123,3 +126,8 @@ ks_gr_a    <- left_join( ks_at0, ks_at1 ) %>%
                 subset( !is.na(gr) ) 
 
 
+# Only analyze bouteoula gracilis ----------------------------------------
+
+# Ideal functional form 
+# gr ~ ppt_t0|group + nt0
+# gr ~ ppt_t0|group + at0
