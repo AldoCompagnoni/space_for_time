@@ -6,7 +6,7 @@
 # 3. cross-validation
 # 4. cross-validation + correlation
 # 5. hypothetical case: 5 years, 100 sites
-library(dplyr)
+library(tidyverse)
 library(ggplot2)
 library(viridis)
 library(ggthemes)
