@@ -65,9 +65,10 @@ select(ks_n, plot, yr) %>%
 
 # Kansas replication
 ks_n %>%
+  # subset( species == spp_v[2] ) %>% 
   subset( n != 0 ) %>%
   ggplot( aes(yr,plot) ) +
-  geom_point() +
+  geom_point() 
   ggsave( 'results/taylors_law/rep_ks.tiff',
           width = 6.3, height = 6.3, compression = 'lzw') 
   
@@ -174,3 +175,30 @@ ggplot( ks_gr_spp ) +
   ggsave( 'results/taylors_law/Keitts_taylor_test.tiff',
           width = 6.3, height = 6.3, compression = 'lzw' )
 
+
+
+# Correlations among plots ---------------------------------
+
+# species vector
+spp_v <- ks_gr$species %>% unique %>% sort
+
+# coordination
+corr_by_plot <- function( spp ){
+
+  mat <- ks_gr %>% 
+    subset( species == spp ) %>% 
+    dplyr::select( -species, -nt0, -nt1) %>% 
+    pivot_wider( names_from  = plot,
+                 values_from = gr ) %>% 
+    as.data.frame %>% 
+    dplyr::select( -yr ) %>% 
+    as.matrix %>% 
+    cor(use="pairwise.complete.obs")
+  
+  mat[lower.tri(mat)] %>% as.numeric %>% hist
+  
+}
+
+corr_l <- lapply(spp_v[-1], corr_by_plot )
+
+lapply(corr_l, function(x) x %>% cor ) 
