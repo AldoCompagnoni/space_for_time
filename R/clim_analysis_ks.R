@@ -113,6 +113,15 @@ ks_gr_n    <- left_join( ks_nt0, ks_nt1 ) %>%
                 subset( !is.na(gr) ) %>% 
                 left_join( rename(prec_anom, yr=MatrixEndYear) )
 
+# by group
+ks_group_n    <- left_join( ks_nt0, ks_nt1 ) %>% 
+  group_by(species, group, yr) %>%
+  summarise(nt1 = sum(nt1),
+            nt0 = sum(nt0)) %>%
+  mutate( gr = log(nt1 / nt0) ) %>% 
+  subset( !is.na(gr) ) %>% 
+  left_join( rename(prec_anom, yr=MatrixEndYear) )
+
 
 # Growth rates by AREA -------------------------------------
 
@@ -134,6 +143,15 @@ ks_gr_a    <- left_join( ks_at0, ks_at1 ) %>%
                 mutate( gr = log(at1 / at0) ) %>% 
                 subset( !is.na(gr) ) %>% 
                 left_join( rename(prec_anom, yr=MatrixEndYear) )
+
+# by group
+ks_group_a    <- left_join( ks_at0, ks_at1 ) %>%
+  group_by(species, group, yr) %>%
+  summarise(at1 = sum(at1, na.rm = T),
+            at0 = sum(at0, na.rm = T)) %>%
+  mutate( gr = log(at1 / at0) ) %>% 
+  subset( !is.na(gr) & is.finite(gr) ) %>% 
+  left_join( rename(prec_anom, yr=MatrixEndYear) )
 
 
 # Only analyze bouteoula gracilis ----------------------------------------
@@ -210,3 +228,24 @@ lm_subset <- function( ii ){
 betas <- sapply(1:29, lm_subset)
 
 
+
+# Variance in growth rates per group  -------------------
+
+# by numbers
+gr_n <- ks_gr_n %>%
+  filter(species == "Bouteloua gracilis") %>%
+  group_by(group) %>%
+  summarise(sd_gr = sd(gr),
+            mean_abun = mean(nt0))
+
+plot(gr_n$mean_abun, gr_n$sd_gr, xlab = "mean abundance per group (in N)", ylab = "sd")
+
+
+# by area
+gr_a <- ks_gr_a %>%
+  filter(species == "Bouteloua gracilis") %>%
+  group_by(group) %>%
+  summarise(sd_gr = sd(gr),
+            mean_abun = mean(at0))
+
+plot(gr_a$mean_abun, gr_a$sd_gr, xlab = "mean abundance per group (in A)", ylab = "sd")
