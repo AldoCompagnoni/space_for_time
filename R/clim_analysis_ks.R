@@ -249,3 +249,41 @@ gr_a <- ks_gr_a %>%
             mean_abun = mean(at0))
 
 plot(gr_a$mean_abun, gr_a$sd_gr, xlab = "mean abundance per group (in A)", ylab = "sd")
+
+
+# Variance changes in growth rates for per plot vs. per group  -------------------
+
+# ALL species
+# create comparison dataframe
+n_plot_gr <- ks_gr_n %>% group_by(species) %>%
+  summarise(sd_plot_n = sd(gr))
+
+a_plot_gr <- ks_gr_a %>% group_by(species) %>%
+  summarise(sd_plot_a = sd(gr))
+
+n_group_gr <- ks_group_n %>% group_by(species) %>%
+  summarise(sd_group_n = sd(gr))
+
+a_group_gr <- ks_group_a %>% group_by(species) %>%
+  summarise(sd_group_a = sd(gr))
+
+var_comp <- left_join(n_plot_gr, n_group_gr) %>%
+  left_join(., a_plot_gr) %>%
+  left_join(., a_group_gr) %>%
+  mutate(diff_n = sd_group_n - sd_plot_n,
+         diff_a = sd_group_a - sd_plot_a)
+
+# plots/histograms
+plot(var_comp$sd_plot_n, var_comp$sd_group_n)
+abline(a = 0, b = 1)
+
+plot(var_comp$sd_plot_a, var_comp$sd_group_a)
+abline(a = 0, b = 1)
+
+hist(var_comp$diff_n, xlab = "difference between plot and group SD in growth rates (per N)")
+hist(var_comp$diff_a, xlab = "difference between plot and group SD in growth rates (per A)")
+
+# quick tests
+t.test(var_comp$sd_plot_n, var_comp$sd_group_n)
+
+t.test(var_comp$sd_plot_a, var_comp$sd_group_a)
